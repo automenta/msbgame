@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+</head>
+<body style="background-color: white;">
+
+
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+
+<script type="text/javascript" src="js/compiler.js"></script>
+<script type="text/javascript" src="js/lsystem.js"></script>
+<script type="text/javascript" src="js/rule.js"></script>
+<script type="text/javascript" src="js/turtle.js"></script>
+<script type="text/javascript" src="js/driver.js"></script>
+<script type="text/javascript" src="js/driver_canvas.js"></script>
+<script type="text/javascript" src="js/driver_svgsource.js"></script>
+<script type="text/javascript" src="js/interpreter_2d.js"></script>
+<script type="text/javascript" src="js/parser.js"></script>
+
+
+
+<script type="text/javascript">
+
+
+
+var canvas = null;
+var angle = null;
+var canvasDOMNode = null;
+var editorDOMNode = null;
+
+var compiled_lstr = '';
+var parsed_lsys = null;
+
+var startx = 320;
+var starty = 400;
+
+var maxCanvasWidth = 900;
+var maxCanvasHeight = 800;
+
+var minCanvasWidth = 300;
+var minCanvasHeight = 300;
+
+var settings = {
+    'autoRedraw': true,
+    'drawStartPosition': false
+};
+
+var presetXml = null;
+var presets = new Array();
+
+var svgSourceWindow = null;
+
+function getElementPosition(obj) {
+        var offsetTrail = obj;
+        var offsetLeft = 0;
+        var offsetTop = 0;
+
+        while (offsetTrail) {
+            offsetLeft += offsetTrail.offsetLeft;
+            offsetTop += offsetTrail.offsetTop;
+            offsetTrail = offsetTrail.offsetParent;
+        }
+
+        return {x:offsetLeft, y:offsetTop};
+}
+
+function deg2rad(deg) {
+    return 2 * Math.PI / 360 * deg;
+}
+
+function changeCanvasWidth(d) {
+    var w1 = document.getElementById('lscanvas').width;
+    var w = w1 + d;
+    
+    if(w > maxCanvasWidth) {
+        w = maxCanvasWidth;
+    } else if(w < minCanvasWidth) {
+        w = minCanvasWidth;
+    }
+    
+    if(w1 != w) {
+        document.getElementById('lscanvas').width = w;
+        redraw();
+    }
+}
+
+function changeCanvasHeight(d) {
+    var h1 = document.getElementById('lscanvas').height;
+    var h = h1 + d;
+    
+    if(h > maxCanvasHeight) {
+        h = maxCanvasHeight;
+    } else if(h < minCanvasHeight) {
+        h = minCanvasHeight;
+    }
+    
+    if(h1 != h) {
+        document.getElementById('lscanvas').height = h;
+        redraw();
+    }
+}
+
+
+function loadPresets(filename) {
+    presetXml = document.implementation.createDocument('', '', null);
+    presetXml.onload = loadPresetsCallback;
+    presetXml.load(filename);
+}
+
+function loadPresetsCallback() {
+    var selectDOMNode = document.getElementById('lspresets');
+
+    selectDOMNode.addEventListener('change', loadPreset, true);
+    
+    var groups = presetXml.documentElement.getElementsByTagName('group');
+    for(var i=0; i<groups.length; i++) {
+        var n_optgroup = document.createElement('optgroup');
+        n_optgroup.setAttribute('label', groups[i].getAttribute('name'));
+        
+        var lsystems = groups[i].getElementsByTagName('lsystem');
+        for(ii=0; ii<lsystems.length; ii++) {
+            var n_option = document.createElement('option');
+            n_option.appendChild(document.createTextNode(lsystems[ii].getAttribute('name')));
+            presets.push(lsystems[ii].firstChild.nodeValue);
+            n_option.setAttribute('value', presets.length - 1);
+            
+            //n_option.appendChild(document.createTextNode(lsystems[ii].firstChild.nodeValue));
+            
+            n_optgroup.appendChild(n_option);
+        }
+        
+        selectDOMNode.appendChild(n_optgroup);
+    }
+
+}
+
+function _fillPresetSelector() {
+    var selectDOMNode = document.getElementById('lspresets');
+    
+    for(var gi=0; gi < presets.length; gi++) {
+        var n_optgroup = document.createElement('optgroup');
+        n_optgroup.setAttribute('label', presets[gi]['name']);
+        
+        for(var si=0; si < presets[gi]['systems'].length; si++) {
+            var n_option = document.createElement('option');
+            n_option.appendChild(document.createTextNode(presets[gi]['systems'][si]['name']));
+            n_option.setAttribute('onclick', 'loadPreset('+gi+','+si+');');
+            //n_optgroup.addEventListener('click', canvas_click, true);
+            n_optgroup.appendChild(n_option);
+        }
+        
+        selectDOMNode.appendChild(n_optgroup);
+    }
+}
+
+function loadPreset(e) {
+    //console.log(e);
+    //console.log(e.target.options[e.target.selectedIndex].value);
+    
+    editorDOMNode.value = presets[e.target.options[e.target.selectedIndex].value];
+    redraw();
+}
+
+function _loadPreset(gi, si) {
+    if(typeof presets[gi] != 'undefined' && typeof presets[gi]['systems'][si] != 'undefined') {
+        editorDOMNode.value = presets[gi]['systems'][si]['system'];
+        redraw();
+    }
+}
+
+function parse() {
+    var lsparser = new parser();
+    return lsparser.parseString(editorDOMNode.value);
+}
+
+function compile(lsys) {
+    var lscompiler = new compiler();
+
+    //var lsys = lsparser.parseString(editorDOMNode.value);
+    lscompiler.addRules(lsys.rules);
+    lscompiler.setAxiom(lsys.axiom);
+    
+    // compile the l-system (returns a string)
+    return lscompiler.compile(lsys.iterations);
+}
+
+function interpret(lsys, lstr, px, py) {
+    if(typeof px != 'undefined') {
+        startx = px;
+    }
+    
+    if(typeof py != 'undefined') {
+        starty = py;
+    }
+
+    // create a new interpreter instance and attach a driver
+	var lsinterpreter = new interpreter_2d(new driver_canvas(canvasDOMNode), new turtle(startx, starty));
+	lsinterpreter.drawStartPosition = settings['drawStartPosition'];
+	lsinterpreter.angle = lsys.angle;
+	lsinterpreter.nodeLength = lsys.nodeLength;
+
+    // interpret the compiled string
+    lsinterpreter.interpret(lstr);
+}
+
+
+function _svgSrcWindowLoaded() {
+    getSvgSource();
+}
+
+function _svgSrcWindowUnloaded() {
+    svgSourceWindow = null;
+}
+
+function getSvgSource() {
+    var srcText = svgSourceWindow.document.getElementById('svgsrc')
+    srcText.value = 'Hello World';
+    svgSourceWindow.focus();
+    
+    // create a new interpreter instance and attach a driver
+    var svgi = new interpreter_2d(new driver_svgSource(srcText), new turtle(startx, starty));
+    svgi.drawStartPosition = settings['drawStartPosition'];
+    svgi.angle = lsys.angle;
+    svgi.nodeLength = 20;
+
+    // interpret the compiled string
+    svgi.interpret(compiled_lstr);
+}
+
+function showSvgSource() {
+    if(!svgSourceWindow || !svgSourceWindow.document) {
+        svgSourceWindow = window.open('svgsrcwindow.html', 'svgsrc', 'width=800,height=800');
+        svgSourceWindow.onload = _svgSrcWindowLoaded;
+    } else {
+        getSvgSource();
+    }
+    
+}
+
+function canvas_click(e) {
+    if(parsed_lsys != null && compiled_lstr != '') {
+        var elementPos = getElementPosition(e.target);
+        var x = e.pageX - elementPos.x;
+        var y = e.pageY - elementPos.y;
+        interpret(parsed_lsys, compiled_lstr, x, y);
+    }
+}
+
+function editor_change(e) {
+    redraw();
+}
+
+function updateSettings() {
+    //settings['autoRedraw'] = document.getElementById('settings_autoredraw').checked == true ? true : false;
+    settings['drawStartPosition'] = document.getElementById('settings_drawstartpos').checked == true ? true : false;
+}
+
+function start() {
+    canvasDOMNode = document.getElementById('lscanvas');
+    editorDOMNode = document.getElementById('lseditor');
+    
+    //canvasDOMNode.addEventListener('click', canvas_click, true);
+    //editorDOMNode.addEventListener('change', editor_change, true);
+    
+    //document.getElementById('settings_autoredraw').addEventListener('change', updateSettings, true);
+    //document.getElementById('settings_drawstartpos').addEventListener('change', updateSettings, true);
+    
+    //fillPresetSelector();
+    //loadPresets('presets.xml');
+    //updateSettings();
+    
+    redraw();
+}
+
+var lastIterations = -1;
+function redraw(iterations, angle, length) {
+
+	if (!parsed_lsys) {
+	    parsed_lsys = parse();
+	}
+
+	parsed_lsys.angle = angle;
+	parsed_lsys.nodeLength = length;
+
+	if (iterations!=lastIterations) {
+		parsed_lsys.iterations = iterations;
+	    compiled_lstr = compile(parsed_lsys);
+		lastIterations = iterations;
+	}
+	
+    interpret(parsed_lsys, compiled_lstr);
+}
+
+
+$('body').ready(function() {
+	start();
+
+	var frame = 0;
+	function update() {
+		var dangle = Math.sin(frame/10.0)*5.0;
+		var dlength = Math.sin(frame/20.0)*1.0;
+		redraw(3, 17.5+dangle, 10.0+dlength);
+
+		frame++;
+	}
+	setInterval(update, 50);
+});
+     
+</script>
+
+[8:20:12 PM] Mass Spectrum: they growth mainly a balance of gibberellins/auxins/cytokinins
+[8:21:30 PM] Mass Spectrum: less light makes more gibberellin to stretch out plant in seeking it. auxins drive straight upwards growth inependent of the stretching aforementioned/ cytos all about branching/buding/flowering
+<br/>
+<textarea cols="80" rows="4" id="lseditor"># Welcome to LSys/JS
+# NOTE: LSys/JS has only been tested with Firefox 1.5+ 
+#
+# - Use the mouse to reposition the current L-System
+# - Hit "Alt-R" or click "Redraw" to redraw
+# - Use the "Width" and "Height" buttons to resize the drawing canvas
+# - Load a ready-made L-System from the presets and have fun.
+#
+# Click "Help" for more information.
+#
+# The default L-System models a small weed made by Philipp Stucki.
+
+iterations=3
+angle=8.5
+axiom=+A-B-C-D+E
+
+A:=FFFF[--AE]F[+++AE]FFF
+B:=FFFF
+C:=F[+++CE]F[-AE]F
+D:=FFF
+E:=[---F][--FF][-FFF][+++F][++FF][+FFF]FFF
+</textarea>
+        <div id="canvascontainer">
+            <canvas id="lscanvas" width="640" height="500"></canvas>
+        </div>
+
+
+
+
+</body>

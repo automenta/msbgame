@@ -1,0 +1,1622 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <title>L-system.html</title>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <meta name="description" content="L-system.html - A web page for exploring L-systems using the new canvas element">
+  <script src="res/firebug/firebug.js" type="text/javascript"></script>
+  <!-- lend IE a helping hand -->
+  <!--[if IE]><script type="text/javascript" src="res/js/excanvas.js"></script><![endif]-->
+  <link rel="stylesheet" href="res/css/ls-min.css" type="text/css" media="screen">
+    
+  <link rel="stylesheet" href="res/css/lsystem-print.css" type="text/css" media="print">
+  <script src="res/js/ls1-min.js" type="text/javascript"></script>
+    
+</head>
+<body>
+<script type="text/javascript">
+var examples = {};
+</script>
+<noscript>
+  <p>This page requires JavaScript and support for the canvas element.</p>
+</noscript>
+<div id="doc3" class="yui-t7">
+  <div id="hd">
+    <h1>L-system.html</h1>
+  </div>
+  <div id="bd">
+    <div class="yui-gc">
+      <div id="drawingArea" class="yui-u first">
+        <div class="yui-gc">
+          <div class="yui-u first">
+            <h2>&nbsp;</h2>
+          </div>
+          <div id="menu" class="yui-u">
+            <a id="saveCmd" href="#save">Save</a>
+            <a id="infoCmd" href="#info">Info</a>
+            <a id="aboutCmd" href="#about">About</a>
+          </div>
+        </div>
+        <p id="saveInstructions">Right-click on drawing and select save-as to save the model.</p>
+        <div id="s1"></div>
+        <div id="c1"></div>
+      </div>
+      <div id="controls" class="yui-u">
+        <div id="modelChoice" class="ctrl-row">
+          <div class='lhs'><label accesskey="m" for="whichLsys">L-system Model:</label></div>
+          <div class='rhs'><select id="whichLsys" size="1">
+            <option value="empty">empty</option>
+          </select></div>
+        </div>
+
+<!--
+**
+**  Begin models
+**
+-->
+<div id="models">
+  <div id="description">
+    <h2>description</h2>
+    <p>This program allows you to explore a number of fractals generated with 
+    <a href="http://en.wikipedia.org/wiki/L-systems">Lindenmayer-systems</a> 
+    (L-systems). L-systems are rewriting systems. 
+    They take a list of symbols and repeatedly generate a new list of
+    symbols by following a set of rules. Each new list of
+    symbols is called a generation. The beauty of L-systems is that with just
+    a few symbols and rules amazingly complex shapes can be created.</p>
+    <p>Most of the fractals and plant models shown here can be found in 
+    the book <a title="Algorithmic Beauty of Plants" 
+    href="http://algorithmicbotany.org/papers/#abop">"The Algorithmic Beauty of Plants"</a> (ABOP). 
+    Where appropriate the model is labeled with ABOP and the figure number from the book.</p>
+    <p>Select a L-system model from the drop down
+    list above. A brief description of the model is given. The definition of the 
+    model is given including the symbols, their turtle interpretation, the initial
+    list of symbols (axiom) and rules. Some models have 
+    parameters that you can adjust. You can set the number of generations to 
+    run before drawing. Press the Play button to draw the model. The Previous
+    and Next buttons will draw the previous or next generation respectively.</p>
+    <p>Control the speed and smoothness of the drawing with the Modules per step
+    and Delay sliders.</p>
+  </div>
+  <div id="KochSnowflake">
+    <h2>Koch Snowflake</h2>
+    <p>The <a href="http://en.wikipedia.org/wiki/Koch_snowflake">Koch snowflake</a> 
+    (or Koch star) is a mathematical curve and one of 
+    the earliest fractal curves to have been described. It is named after
+    the Swedish mathematician Helge von Koch.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(60)
+  - right(60)
+Axiom: F - - F - - F
+Rules: F --&gt; F + F - - F + F</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="KochSnowflake_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="KochSnowflake_ngen" type="text" value="4" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.KochSnowflake = function(t)
+{
+  var m = Math.min(t.canvasWidth, t.canvasHeight) - 50;
+  var d0 = Math.sin(60 * Math.PI / 180.0) * m;
+  var d;
+  var ls = new jjs.Lsystem({
+               F: function() { t.forward(d); },
+               "+": function() { t.left(60); },
+               "-": function() { t.right(60); }
+             }, 
+             [ {id: "F"},{id: "-"},{id: "-"},{id: "F"},{id: "-"},{id: "-"},{id: "F"} ], 
+             [ 
+               { p: [ {id: "F"} ],
+                 s: function() {
+                   return [{id:"F"},{id:"+"},{id:"F"},{id:"-"},{id:"-"},{id:"F"},{id:"+"},{id:"F"}];} }
+             ]
+             );
+  t.moveTo(-d0 / 2, d0 / 3);
+  ls.beforeRender = function () {
+    d = d0 * (1 / Math.pow(3, ls.generation));
+  };
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="KochCurve">
+    <h2>Koch curve</h2>
+    <p>This is one side of a <a href="http://en.wikipedia.org/wiki/Koch_snowflake">Koch snowflake</a>.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(60)
+  - right(60)
+Axiom: F
+Rules: F --&gt; F + F - - F + F</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="KochCurve_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="KochCurve_ngen" type="text" value="2" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.KochCurve = function(t)
+{
+  var d0 = t.canvasWidth - 20;
+  var d;
+  var ls = new jjs.Lsystem({
+               F: function() { t.forward(d); },
+               "+": function() { t.left(60); },
+               "-": function() { t.right(60); }
+             }, 
+             [ {id: "F"} ], 
+             [ 
+               { p: [ {id: "F"} ],
+                 s: function() {
+                   return [{id:"F"},{id:"+"},{id:"F"},{id:"-"},{id:"-"},{id:"F"},{id:"+"},{id:"F"}];} }
+             ]
+             );
+  t.moveTo(-d0 / 2, - (t.canvasHeight / 2) + 10);
+  ls.beforeRender = function () {
+    d = d0 * (1 / Math.pow(3, ls.generation));
+  };
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="DragonCurve">
+    <h2>Dragon curve</h2>
+    <p>The <a href="http://en.wikipedia.org/wiki/Dragon_curve">Dragon Curve</a>. 
+    This implementation uses edge rewriting as shown in 
+    <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr> fig. 1.4.</p>
+    <pre>
+Symbols:
+  Fl forward(d)
+  Fr forward(d)
+  + left(90)
+  - right(90)
+Axiom: Fl
+Rules:
+  Fl --&gt; Fl + Fr +
+  Fr --&gt; - Fl - Fr</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="d" for="DragonCurve_d">Distance (d):</label></div>
+      <div class='rhs'><input id="DragonCurve_d" type="text" value="6"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="DragonCurve_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="DragonCurve_ngen" type="text" value="9" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.DragonCurve = function(t)
+{
+  var d = parseFloat($("#DragonCurve_d").val());
+  var ls = new jjs.Lsystem({
+                Fl: function() { t.style('blue').forward(d); },
+                Fr: function() { t.style('red').forward(d); },
+                "+": function() { t.left(90); },
+                "-": function() { t.right(90); }
+              }, 
+              [ {id: "Fl"} ], 
+              [ 
+                { p: {id: "Fl"},
+                  s: function() { return [{id:"Fl"},{id:"+"},{id:"Fr"},{id:"+"}];} },
+                { p: {id: "Fr"},
+                  s: function() { return [{id:"-"},{id:"Fl"},{id:"-"},{id:"Fr"}];} }
+              ]
+              );
+  t.moveTo(100, -100);
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="SierpinskiTriangle">
+    <h2>Sierpinski Triangle</h2>
+    <p>The <a href="http://en.wikipedia.org/wiki/Sierpinski_triangle">Sierpinski triangle</a>, 
+    also called the Sierpinski gasket, 
+    is a fractal named after Wacław Sierpiński who described it in 1915.
+    There are a few different construction methods. This example uses a turtle.
+    See <a href="http://scratch.mit.edu/projects/magicseth/17651">this scratch project</a> for another way.</p>
+    <pre>
+Symbols:
+  Fr forward(d)
+  Fl forward(d)
+  + left(60)
+  - right(60)
+Axiom: Fr
+Rules:
+  Fl --&gt; Fr + Fl + Fr
+  Fr --&gt; Fl - Fr - Fl</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="SierpinskiTriangle_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="SierpinskiTriangle_ngen" type="text" value="6" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.SierpinskiTriangle = function(t)
+{
+  var m = Math.min(t.canvasWidth, t.canvasHeight) - 50;
+  var d0 = Math.sin(60 * Math.PI / 180.0) * m;
+  var d;
+  var ls = new jjs.Lsystem({
+                      Fl: function() { t.forward(d); },
+                      Fr: function() { t.forward(d); },
+                      "+": function() { t.left(60); },
+                      "-": function() { t.right(60); }
+                    }, 
+                    [ {id: "Fr"} ], 
+                    [ 
+                      { p: {id: "Fl"},
+                        s: function() { return [{id:"Fr"},{id:"+"},{id:"Fl"},{id:"+"},{id:"Fr"}];} },
+                      { p: {id: "Fr"}, 
+                        s: function() { return [{id:"Fl"},{id:"-"},{id:"Fr"},{id:"-"},{id:"Fl"}];} }
+                    ]
+                    );
+  t.moveTo(-m / 2, -d0 / 2);
+  ls.beforeRender = function () {
+    d = d0 * (1 / Math.pow(2*Math.cos(60 * Math.PI / 180.0) +1, ls.generation));
+    if (ls.generation %2 == 1)
+    {
+      t.heading(60);
+    }
+  };
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="SierpinskiTriangle2">
+    <h2>Sierpinski Triangle2</h2>
+    <p>This is an alternative method for making the Sierpinski triangle. This does not use turtle
+    graphics. It works by replacing a triangle with 3 smaller triangles. See this
+    <a href="http://en.wikipedia.org/wiki/Sierpinski_triangle">wikipedia article</a> for an example.
+    This is a parametric L-system where the parameters are points that define a triangle.</p>
+    <pre>
+Symbols:
+  T(a, b, c) draw a triangle
+    through points a, b, c
+Axiom: T(a, b, c)
+Rules:
+  T(a, b, c) --&gt; T(a, mid(a,b), mid(a,c))
+                 T(mid(a,b), b, mid(b,c))
+                 T(mid(a,c), mid(b,c), c)</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="SierpinskiTriangle2_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="SierpinskiTriangle2_ngen" type="text" value="4" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.SierpinskiTriangle2 = function(t)
+{
+  function mid(a, b)
+  {
+    return { x: a.x + ((b.x - a.x)/2), y: a.y + ((b.y - a.y)/2) };
+  }
+  var m = Math.min(t.canvasWidth, t.canvasHeight) - 20;
+  var r = m / 2;
+  var a0, b0, c0;
+  t.penUp();
+  t.home().right(150).forward(r);
+  a0 = {x: t.x, y: t.y};
+  t.home().left(90).forward(r);
+  b0 = {x: t.x, y: t.y};
+  t.home().right(30).forward(r);
+  c0 = {x: t.x, y: t.y};
+
+  var ls = new jjs.Lsystem({
+                      T: function(a, b, c) {
+                        var ctx = t.ctx;
+                        ctx.beginPath();
+                        ctx.moveTo(a.x, a.y);
+                        ctx.lineTo(b.x, b.y);
+                        ctx.lineTo(c.x, c.y);
+                        ctx.fill();
+                      }
+                    }, 
+                    [ {id: "T", args: [a0, b0, c0 ]}], 
+                    [ 
+                      { p: [ {id: "T", a: 3} ],
+                        s: function(a, b, c) { 
+                          var mab = mid(a,b);
+                          var mac = mid(a,c);
+                          var mbc = mid(b,c); 
+                          return [
+         {id:"T", args: [a, mab, mac]},
+         {id:"T", args: [mab, b, mbc]},
+         {id:"T", args: [mac, mbc, c]}
+                                 ];} }
+                    ]
+                    );
+  ls.beforeRender = function () {
+    // borrow the pen style for the fill style
+    t.ctx.fillStyle = t.penStyle;
+  };
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="KochIsland">
+    <h2>Quadratic Koch Island</h2>
+    <p>Quadratic Koch Island. <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr> fig. 1.6.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + right(90)
+  - left(90)
+Axiom: F − F − F − F
+Rules: F --&gt; F − F + F + F F − F − F + F</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="KochIsland_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="KochIsland_ngen" type="text" value="2" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.KochIsland = function(t)
+{
+  var d0 = Math.min(t.canvasWidth, t.canvasHeight) - 200;
+  var d;
+  var ls = new jjs.Lsystem({
+           F: function() { t.forward(d); },
+           "+": function() { t.left(90); },
+           "-": function() { t.right(90); }
+         }, 
+         [ {id: "F"},{id: "-"},{id: "F"},{id: "-"},{id: "F"},{id: "-"},{id: "F"} ], 
+         [ 
+           { p: [ {id: "F"} ], 
+             s: function() { return [{id:"F"},{id:"-"},{id:"F"},{id:"+"},{id:"F"},{id:"+"},
+                                     {id:"F"},{id:"F"},{id:"-"},{id:"F"},{id:"-"},
+                                     {id:"F"},{id:"+"},{id:"F"}];} }
+         ]
+         );
+  t.moveTo(-d0 / 2, d0 / 2);
+  ls.beforeRender = function () {
+    d = d0 * (1 / Math.pow(4, ls.generation));
+  };
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="IslandsAndLakes">
+    <h2>Islands and Lakes</h2>
+    <p>Islands and lakes from <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr> fig. 1.8.</p>
+    <p>This one is not continuous. In other words the turtle picks up the pen at times.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  f penUp() forward(d) penDown()
+  + right(90)
+  - left(90)
+Axiom: F + F + F + F
+Rules: F --&gt; F + f - F F + F + F F + 
+             F f + F F - f + F F - F - 
+             F F - F f - F F F
+       f --&gt; f f f f f f</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="IslandsAndLakes_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="IslandsAndLakes_ngen" type="text" value="2" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.IslandsAndLakes = function(t)
+{
+  var d0 = Math.min(t.canvasWidth, t.canvasHeight) - 200;
+  var d;
+  var ls = new jjs.Lsystem({
+           F: function() { t.forward(d); },
+           f: function() { t.penUp().forward(d).penDown(); },
+           "+": function() { t.left(90); },
+           "-": function() { t.right(90); }
+         }, 
+         [ {id: "F"},{id: "+"},{id: "F"},{id: "+"},{id: "F"},{id: "+"},{id: "F"} ], 
+         [ 
+           { p: [ {id: "F"} ], 
+             s: function() { return [{id:"F"},{id:"+"},{id:"f"},{id:"-"},{id:"F"},{id:"F"},
+                                     {id:"+"},{id:"F"},{id:"+"},{id:"F"},{id:"F"},{id:"+"},
+                                     {id:"F"},{id:"f"},{id:"+"},{id:"F"},{id:"F"},{id:"-"},
+                                     {id:"f"},{id:"+"},{id:"F"},{id:"F"},{id:"-"},{id:"F"},
+                                     {id:"-"},{id:"F"},{id:"F"},{id:"-"},{id:"F"},{id:"f"},
+                                     {id:"-"},{id:"F"},{id:"F"},{id:"F"}];} },
+           { p: [ {id: "f"} ], 
+             s: function() { return [{id:"f"},{id:"f"},{id:"f"},{id:"f"},{id:"f"},{id:"f"}];} }
+         ]
+         );
+  t.moveTo(-d0 / 2, -d0 / 2);
+  ls.beforeRender = function () {
+    d = d0 * (1 / Math.pow(6, ls.generation));
+  };
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="QuadSnowflake">
+    <h2>Quadratic Snowflake</h2>
+    <p>Quadratic Snowflake from <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr> fig. 1.7b.</p>
+    <p>This fractal as well as many other interesting ones can be found in this
+    <a href="http://en.wikipedia.org/wiki/List_of_fractals_by_Hausdorff_dimension">list of fractals</a>.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(90)
+  - right(90)
+Axiom: F
+Rules:
+  F --&gt; F + F - F - F + F</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="QuadSnowflake_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="QuadSnowflake_ngen" type="text" value="5" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.QuadSnowflake = function(t)
+{
+  var d0 = Math.min(t.canvasWidth, t.canvasHeight);
+  var d;
+  var ls = new jjs.Lsystem({
+                F: function() { t.forward(d); },
+                "+": function() { t.left(90); },
+                "-": function() { t.right(90); }
+              }, 
+              [ {id: "F"} ], 
+              [ 
+                { p: [ {id: "F"} ], 
+                  s: function() { return [{id:"F"},{id:"+"},{id:"F"},{id:"-"},{id:"F"},
+                                          {id:"-"},{id:"F"},{id:"+"},{id:"F"}];} }
+              ]
+              );
+  t.moveTo(-d0 / 2, -d0 / 2 + 20);
+  ls.beforeRender = function () {
+    d = d0 * (1 / Math.pow(3, ls.generation));
+  };
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="abopFig1_9a">
+    <h2>Fig. 1.9 a</h2>
+    <p>Fig. 1.9 a from <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr>.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + right(90)
+  - left(90)
+Axiom: F − F − F − F
+Rules: F --&gt; F F - F - F - F − F - F + F</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="abopFig1_9a_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="abopFig1_9a_ngen" type="text" value="4" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.abopFig1_9a = function(t)
+{
+  var d0 = Math.min(t.canvasWidth, t.canvasHeight) - 40;
+  var d;
+  var ls = new jjs.Lsystem({
+           F: function() { t.forward(d); },
+           "+": function() { t.left(90); },
+           "-": function() { t.right(90); }
+         }, 
+         [ {id: "F"},{id: "-"},{id: "F"},{id: "-"},{id: "F"},{id: "-"},{id: "F"} ], 
+         [ 
+           { p: [ {id: "F"} ], 
+             s: function() { return [{id:"F"},{id:"F"},{id:"-"},{id:"F"},{id:"-"},{id:"F"},
+                                     {id:"-"},{id:"F"},{id:"-"},{id:"F"},{id:"-"},{id:"F"},
+                                     {id:"+"},{id:"F"}];} }
+         ]
+         );
+  ls.beforeRender = function () {
+    d = d0 * (1 / Math.pow(4, ls.generation));
+    t.moveTo((-d0 / 2) + (d0 / 8 * ls.generation), d0 / 2);
+  };
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="abopFig1_9b">
+    <h2>Fig. 1.9 b</h2>
+    <p>Fig. 1.9 b from <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr>.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + right(90)
+  - left(90)
+Axiom: F − F − F − F
+Rules: F --&gt; F F - F - F - F − F F</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="abopFig1_9b_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="abopFig1_9b_ngen" type="text" value="3" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.abopFig1_9b = function(t)
+{
+  var d0 = Math.min(t.canvasWidth, t.canvasHeight) - 40;
+  var d;
+  var ls = new jjs.Lsystem({
+           F: function() { t.forward(d); },
+           "+": function() { t.left(90); },
+           "-": function() { t.right(90); }
+         }, 
+         [ {id: "F"},{id: "-"},{id: "F"},{id: "-"},{id: "F"},{id: "-"},{id: "F"} ], 
+         [ 
+           { p: [ {id: "F"} ], 
+             s: function() { return [{id:"F"},{id:"F"},{id:"-"},{id:"F"},{id:"-"},
+                                     {id:"F"},{id:"-"},{id:"F"},{id:"-"},{id:"F"},{id:"F"}];} }
+         ]
+         );
+  t.moveTo(-d0 / 2, d0 / 2);
+  ls.beforeRender = function () {
+    d = d0 * (1 / Math.pow(3, ls.generation));
+  };
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="abopFig1_9d">
+    <h2>Fig. 1.9 d</h2>
+    <p>Fig. 1.9 d from <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr>.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + right(90)
+  - left(90)
+Axiom: F − F − F − F
+Rules: F --&gt; F F - F - - F − F</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="abopFig1_9d_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="abopFig1_9d_ngen" type="text" value="4" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.abopFig1_9d = function(t)
+{
+  var d0 = Math.min(t.canvasWidth, t.canvasHeight) - 40;
+  var d;
+  var ls = new jjs.Lsystem({
+           F: function() { t.forward(d); },
+           "+": function() { t.left(90); },
+           "-": function() { t.right(90); }
+         }, 
+         [ {id: "F"},{id: "-"},{id: "F"},{id: "-"},{id: "F"},{id: "-"},{id: "F"} ], 
+         [ 
+           { p: [ {id: "F"} ], 
+             s: function() { return [{id:"F"},{id:"F"},{id:"-"},{id:"F"},{id:"-"},
+                                     {id:"-"},{id:"F"},{id:"-"},{id:"F"}];} }
+         ]
+         );
+  t.moveTo(-d0 / 2, d0 / 2);
+  ls.beforeRender = function () {
+    d = d0 * (1 / Math.pow(3, ls.generation));
+  };
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="Tree_a">
+    <h2>Tree a</h2>
+    <p>Tree a from fig. 1.24 in <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr>.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(a)
+  - right(a)
+  [ push
+  ] pop
+Axiom: F
+Rules:
+  F --&gt; F [ + F ] F [ - F ] F</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="d" for="Tree_a_dist">Distance (d):</label></div>
+      <div class='rhs'><input id="Tree_a_dist" type="text" value="1.7"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="a" for="Tree_a_angle">Angle (a):</label></div>
+      <div class='rhs'><input id="Tree_a_angle" type="text" value="25.7"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="Tree_a_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="Tree_a_ngen" type="text" value="5" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.Tree_a = function(t)
+{
+  var d = parseFloat($("#Tree_a_dist").val());
+  var a = parseFloat($("#Tree_a_angle").val());
+  var ls = new jjs.Lsystem({ 
+              "F": function() { t.forward(d); },
+              "+": function() { t.left(a); },
+              "-": function() { t.right(a); },
+              "[": function() { t.push(); },
+              "]": function() { t.pop(); }
+             }, 
+             [ {id: "F"} ], 
+             [ 
+               { p: [ {id: "F"} ], 
+                 s: function() { return [{id: "F"},
+                                          [{id:"+"},{id:"F"}],{id: "F"},[{id: "-"},{id: "F"}],
+                                          {id: "F"}
+                                        ];}
+                }
+             ]
+            );
+  t.left(90);
+  t.moveTo(0, -t.canvasHeight / 2 + 10);
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="Tree_b">
+    <h2>Tree b</h2>
+    <p>Tree b from fig. 1.24 in <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr>.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(a)
+  - right(a)
+  [ push
+  ] pop
+Axiom: F
+Rules:
+  F --&gt; F [ + F ] F [ - F ] [ F ]</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="d" for="Tree_b_dist">Distance (d):</label></div>
+      <div class='rhs'><input id="Tree_b_dist" type="text" value="6"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="a" for="Tree_b_angle">Angle (a):</label></div>
+      <div class='rhs'><input id="Tree_b_angle" type="text" value="20"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="Tree_b_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="Tree_b_ngen" type="text" value="5" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.Tree_b = function(t)
+{
+  var d = parseFloat($("#Tree_b_dist").val());
+  var a = parseFloat($("#Tree_b_angle").val());
+  var ls = new jjs.Lsystem({ 
+              "F": function() { t.forward(d); },
+              "+": function() { t.left(a); },
+              "-": function() { t.right(a); },
+              "[": function() { t.push(); },
+              "]": function() { t.pop(); }
+             }, 
+             [ {id: "F"} ], 
+             [ 
+               { p: [ {id: "F"} ], 
+                 s: function() { return [{id: "F"},
+                                          [{id:"+"},{id:"F"}],{id: "F"},[{id: "-"},{id: "F"}],
+                                          [{id: "F"}]
+                                        ];}
+                }
+             ]
+            );
+  t.left(90);
+  t.moveTo(0, -t.canvasHeight / 2 + 10);
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="Tree_c">
+    <h2>Tree c</h2>
+    <p>Tree c from fig. 1.24 in <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr>.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(a)
+  - right(a)
+  [ push
+  ] pop
+Axiom: F
+Rules:
+  F --&gt; F F - [ - F + F + F ] + 
+        [ + F - F - F ]</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="d" for="Tree_c_dist">Distance (d):</label></div>
+      <div class='rhs'><input id="Tree_c_dist" type="text" value="5"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="a" for="Tree_c_angle">Angle (a):</label></div>
+      <div class='rhs'><input id="Tree_c_angle" type="text" value="22.5"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="Tree_c_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="Tree_c_ngen" type="text" value="4" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.Tree_c = function(t)
+{
+  var d = parseFloat($("#Tree_c_dist").val());
+  var a = parseFloat($("#Tree_c_angle").val());
+  var ls = new jjs.Lsystem({ 
+              "F": function() { t.forward(d); },
+              "+": function() { t.left(a); },
+              "-": function() { t.right(a); },
+              "[": function() { t.push(); },
+              "]": function() { t.pop(); }
+             }, 
+             [ {id: "F"} ], 
+             [ 
+               { p: [ {id: "F"} ], 
+                 s: function() { return [{id: "F"},{id: "F"},{id: "-"},
+                                          [{id:"-"},{id:"F"},{id: "+"},{id: "F"},{id: "+"},{id: "F"}],
+                                          {id: "+"}, 
+                                          [{id:"+"},{id:"F"},{id: "-"},{id: "F"},{id: "-"},{id: "F"}]
+                                        ];}
+                }
+             ]
+            );
+  t.left(90);
+  t.moveTo(0, -t.canvasHeight / 2 + 10);
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="Tree_d">
+    <h2>Tree d</h2>
+    <p>Tree d from fig. 1.24 in <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr>. 
+    This is a non-deterministic version
+    with the possibility of branching either left or right at the first branch point.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(a)
+  - right(a)
+  [ push
+  ] pop
+Axiom: X
+Rules:
+  X --&gt;  (pl) F [ + X ] F [ - X ] + X
+       (1-pl) F [ - X ] F [ - X ] + X
+  F --&gt; F F</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="d" for="Tree_d_dist">Distance (d):</label></div>
+      <div class='rhs'><input id="Tree_d_dist" type="text" value="1.5"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="a" for="Tree_d_angle">Angle (a):</label></div>
+      <div class='rhs'><input id="Tree_d_angle" type="text" value="20"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label for="Tree_d_pl">Branch Left Prob. (pl):</label></div>
+      <div class='rhs'><input id="Tree_d_pl" type="text" value=".5"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="Tree_d_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="Tree_d_ngen" type="text" value="7" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.Tree_d = function(t)
+{
+  var d = parseFloat($("#Tree_d_dist").val());
+  var pl = parseFloat($("#Tree_d_pl").val());
+  var pr = 1 - pl;
+  var a = parseFloat($("#Tree_d_angle").val());
+  var ls = new jjs.Lsystem({ 
+              "F": function() { t.forward(d); },
+              "+": function() { t.left(a); },
+              "-": function() { t.right(a); },
+              "[": function() { t.push(); },
+              "]": function() { t.pop(); }
+             }, 
+             [ {id: "X"} ], 
+             [ 
+               { p: [ {id: "X"} ], 
+                 s: [ {p: pl, f: function() { return [{id: "F"},[{id:"+"},{id:"X"}], 
+                                          {id: "F"},[{id:"-"},{id:"X"}],{id:"+"},{id:"X"}];} },
+                      {p: pr, f: function() { return [{id: "F"},[{id:"-"},{id:"X"}], 
+                                          {id: "F"},[{id:"-"},{id:"X"}],{id:"+"},{id:"X"}];} }
+                    ] },
+               { p: [ {id: "F"} ],
+                 s: function() { return [{id: "F"},{id:"F"}];} }
+             ]
+            );
+  t.left(90);
+  t.moveTo(0, -t.canvasHeight / 2 + 10);
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="Tree_e">
+    <h2>Tree e</h2>
+    <p>Tree e from fig. 1.24 in <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr>.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(a)
+  - right(a)
+  [ push
+  ] pop
+Axiom: X
+Rules:
+  X --&gt; F [ + X ] [ - X ] F X 
+  F --&gt; F F</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="d" for="Tree_e_dist">Distance (d):</label></div>
+      <div class='rhs'><input id="Tree_e_dist" type="text" value="1.5"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="d" for="Tree_e_angle">Angle (a):</label></div>
+      <div class='rhs'><input id="Tree_e_angle" type="text" value="25.7"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="Tree_e_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="Tree_e_ngen" type="text" value="7" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.Tree_e = function(t)
+{
+  var d = parseFloat($("#Tree_e_dist").val());
+  var a = parseFloat($("#Tree_e_angle").val());
+  var ls = new jjs.Lsystem({ 
+              "F": function() { t.forward(d); },
+              "+": function() { t.left(a); },
+              "-": function() { t.right(a); },
+              "[": function() { t.push(); },
+              "]": function() { t.pop(); }
+             }, 
+             [ {id: "X"} ], 
+             [ 
+               { p: [ {id: "X"} ], 
+                 s: function() { return [{id: "F"}, 
+                                          [ {id:"+"},{id:"X"} ],[ {id: "-"},{id: "X"} ],
+                                          {id: "F"},{id: "X"}
+                                        ];}
+               },
+               { p: [ {id: "F"} ], 
+                 s: function() { return [{id: "F"},{id: "F"}];}
+               }
+             ]
+            );
+  t.left(90);
+  t.moveTo(0, -t.canvasHeight / 2 + 10);
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="Tree_f">
+    <h2>Tree f</h2>
+    <p>Tree f from fig. 1.24 in <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr>.</p>
+    <p>This tree can also be found in <a href="http://en.wikipedia.org/wiki/L-systems">here 
+    in example 8</a>.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(a)
+  - right(a)
+  [ push
+  ] pop
+Axiom: X
+Rules:
+  X --&gt; F - [ [ X ] + X ] + F [ + F X ] - X
+  F --&gt; F F</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="d" for="Tree_f_dist">Distance (d):</label></div>
+      <div class='rhs'><input id="Tree_f_dist" type="text" value="4"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="a" for="Tree_f_angle">Angle (a):</label></div>
+      <div class='rhs'><input id="Tree_f_angle" type="text" value="22.5"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="Tree_f_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="Tree_f_ngen" type="text" value="5" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.Tree_f = function(t)
+{
+  var d = parseFloat($("#Tree_f_dist").val());
+  var a = parseFloat($("#Tree_f_angle").val());
+  var ls = new jjs.Lsystem({ 
+              "F": function() { t.forward(d); },
+              "+": function() { t.left(a); },
+              "-": function() { t.right(a); },
+              "[": function() { t.push(); },
+              "]": function() { t.pop(); }
+             }, 
+             [ {id: "X"} ], 
+             [ 
+               { p: [ {id: "X"} ], 
+                 s: function() { return [{id: "F"},{id: "-"}, 
+                                          [ [ {id:"X"} ],{id:"+"},{id: "X"}],{id: "+"},{id: "F"},
+                                          [ {id:"+"},{id:"F"},{id: "X"}],{id: "-"},{id: "X"}
+                                        ];}
+               },
+               { p: [ {id: "F"} ], 
+                 s: function() { return [{id: "F"},{id: "F"}];}
+               }
+             ]
+            );
+  t.left(90);
+  t.moveTo(0, -t.canvasHeight / 2 + 10);
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="Tree_1_27">
+    <h2>Tree 1.27</h2>
+    <p>Tree from fig. 1.27 in <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr>. 
+    This is another non-deterministic tree. It will likely look different each time it is generated.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(a)
+  - right(a)
+  [ push
+  ] pop
+Axiom: F
+Rules:
+  F --&gt;  (.33) F [ + F ] F [ - F ] + F
+         (.33) F [ + F ] F
+         (.34) F [ - F ] F</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="d" for="Tree_1_27_dist">Distance (d):</label></div>
+      <div class='rhs'><input id="Tree_1_27_dist" type="text" value="1.5"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="a" for="Tree_1_27_angle">Angle (a):</label></div>
+      <div class='rhs'><input id="Tree_1_27_angle" type="text" value="25"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="Tree_1_27_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="Tree_1_27_ngen" type="text" value="6" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.Tree_1_27 = function(t)
+{
+  var d = parseFloat($("#Tree_1_27_dist").val());
+  var a = parseFloat($("#Tree_1_27_angle").val());
+  var ls = new jjs.Lsystem({ 
+              "F": function() { t.forward(d); },
+              "+": function() { t.left(a); },
+              "-": function() { t.right(a); },
+              "[": function() { t.push(); },
+              "]": function() { t.pop(); }
+             }, 
+             [ {id: "F"} ], 
+             [ 
+               { p: [ {id: "F"} ], 
+                 s: [ {p: 0.33, f: function() { return [{id:"F"},[{id:"+"},{id:"F"}], 
+                                             {id:"F"},[{id:"-"},{id:"F"}],{id:"F"}];} },
+                      {p: 0.33, f: function() { return [{id:"F"},[{id:"+"},{id:"F"}],{id:"F"}];} },
+                      {p: 0.34, f: function() { return [{id:"F"},[{id:"-"},{id:"F"}],{id:"F"}];} }
+                    ] }
+             ]
+            );
+  t.left(90);
+  t.moveTo(0, -t.canvasHeight / 2 + 10);
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="RowOfTreesA">
+    <h2>Row Of Trees a</h2>
+    <p>Row of Trees from fig. 1.37a in <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr>. 
+    This is a parametric L-system.</p>
+    <pre>
+Constants: 
+  c = 1, p = 0.3, q = c − p, 
+  h = (p * q) ^ ∧ 0.5
+Symbols:
+  F(d) forward(d)
+  + left(a)
+  - right(a)
+Axiom: F(d)
+Rules:
+  F(x) --&gt; F(x * p) + F(x * h) - - 
+           F(x * h) + F(x * q)</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="a" for="RowOfTreesA_angle">Angle (a):</label></div>
+      <div class='rhs'><input id="RowOfTreesA_angle" type="text" value="86"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="RowOfTreesA_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="RowOfTreesA_ngen" type="text" value="4" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.RowOfTreesA = function(t)
+{
+  var c = 1;
+  var p = 0.3;
+  var q = c - p;
+  var h = Math.pow(p * q, 0.5);
+  var a = parseFloat($("#RowOfTreesA_angle").val());
+  var ls = new jjs.Lsystem({ 
+              "F": function(d) { t.forward(d); },
+              "+": function() { t.left(a); },
+              "-": function() { t.right(a); }
+             },
+             [ {id: "F", args: [300]} ], 
+             [ 
+               { p: [ {id: "F", a: 1} ], 
+                 s: function(x) { return [{id: "F", args: [x*p]},{id: "+"},{id: "F", args: [x*h]},
+                                          {id:"-"},{id:"-"},
+                                          {id: "F", args: [x*h]},{id: "+"},{id: "F", args: [x*q]}
+                                        ];}
+                }
+             ]
+            );
+  t.moveTo(-240, -160);
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="Tree1_31a">
+    <h2>Trees 1.31a</h2>
+    <p>Tree from <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr> fig. 1.31 a. 
+    This is a context sensitive L-system.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(a)
+  - right(a)
+Ignore: + - F
+Axiom: F 1 F 1 F 1
+Rules:
+0 &lt; 0 &gt; 0 --&gt; 0
+0 &lt; 0 &gt; 1 --&gt; 1[+F1F1]
+0 &lt; 1 &gt; 0 --&gt; 1
+0 &lt; 1 &gt; 1 --&gt; 1
+1 &lt; 0 &gt; 0 --&gt; 0
+1 &lt; 0 &gt; 1 --&gt; 1F1
+1 &lt; 1 &gt; 0 --&gt; 0
+1 &lt; 1 &gt; 1 --&gt; 0
+    +     --&gt; -
+    -     --&gt; +</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="d" for="Tree1_31a_dist">Distance (d):</label></div>
+      <div class='rhs'><input id="Tree1_31a_dist" type="text" value="4"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="a" for="Tree1_31a_angle">Angle (a):</label></div>
+      <div class='rhs'><input id="Tree1_31a_angle" type="text" value="22.5"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="Tree1_31a_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="Tree1_31a_ngen" type="text" value="30" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.Tree1_31a = function(t)
+{
+  var d = parseFloat($("#Tree1_31a_dist").val());
+  var a = parseFloat($("#Tree1_31a_angle").val());
+  var ls = new jjs.Lsystem({
+              F: function() { t.forward(d); },
+              "+": function() { t.left(a); },
+              "-": function() { t.right(a); },
+              "[": function() { t.push(); },
+              "]": function() { t.pop(); }
+             },
+             [ {id:"F"},{id:"1"},{id:"F"},{id:"1"},{id:"F"},{id:"1"} ], 
+             [ 
+               { p: [ {id:"0"},{dir:"^",id:"0"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"0"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"1"},[{id:"+"},{id:"F"},{id:"1"},{id:"F"},{id:"1"}]];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"0"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"1"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"0"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"1"}];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"1"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"1"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"1"},{id:"F"},{id:"1"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"1"},{dir:".>",id:"0"} ],
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"1"},{dir:".>",id:"1"} ],
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"+"} ],
+                 s: function() { return [{id:"-"}];}
+                },
+               { p: [ {id:"-"} ],
+                 s: function() { return [{id:"+"}];}
+                }
+             ],
+            { F: "", "+": "", "-": "" }
+            );
+  t.left(90);
+  t.moveTo(0, -t.canvasHeight / 2 + 10);
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="Tree1_31b">
+    <h2>Trees 1.31b</h2>
+    <p>Tree from <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr> fig. 1.31 b. 
+    This is a context sensitive L-system.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(a)
+  - right(a)
+Ignore: + - F
+Axiom: F 1 F 1 F 1
+Rules:
+0 &lt; 0 &gt; 0 --&gt; 1
+0 &lt; 0 &gt; 1 --&gt; 1[-F1F1]
+0 &lt; 1 &gt; 0 --&gt; 1
+0 &lt; 1 &gt; 1 --&gt; 1
+1 &lt; 0 &gt; 0 --&gt; 0
+1 &lt; 0 &gt; 1 --&gt; 1F1
+1 &lt; 1 &gt; 0 --&gt; 1
+1 &lt; 1 &gt; 1 --&gt; 0
+    +     --&gt; -
+    -     --&gt; +</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="d" for="Tree1_31b_dist">Distance (d):</label></div>
+      <div class='rhs'><input id="Tree1_31b_dist" type="text" value="4"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="a" for="Tree1_31b_angle">Angle (a):</label></div>
+      <div class='rhs'><input id="Tree1_31b_angle" type="text" value="22.5"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="Tree1_31b_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="Tree1_31b_ngen" type="text" value="30" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.Tree1_31b = function(t)
+{
+  var d = parseFloat($("#Tree1_31b_dist").val());
+  var a = parseFloat($("#Tree1_31b_angle").val());
+  var ls = new jjs.Lsystem({
+              F: function() { t.forward(d); },
+              "+": function() { t.left(a); },
+              "-": function() { t.right(a); },
+              "[": function() { t.push(); },
+              "]": function() { t.pop(); }
+             },
+             [ {id:"F"},{id:"1"},{id:"F"},{id:"1"},{id:"F"},{id:"1"} ], 
+             [ 
+               { p: [ {id:"0"},{dir:"^",id:"0"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"1"}];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"0"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"1"},[{id:"-"},{id:"F"},{id:"1"},{id:"F"},{id:"1"}]];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"0"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"1"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"0"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"1"}];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"1"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"1"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"1"},{id:"F"},{id:"1"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"1"},{dir:".>",id:"0"} ],
+                 s: function() { return [{id:"1"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"1"},{dir:".>",id:"1"} ],
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"+"} ],
+                 s: function() { return [{id:"-"}];}
+                },
+               { p: [ {id:"-"} ],
+                 s: function() { return [{id:"+"}];}
+                }
+             ],
+            { F: "", "+": "", "-": "" }
+            );
+  t.left(90);
+  t.moveTo(0, -t.canvasHeight / 2 + 10);
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="Tree1_31c">
+    <h2>Trees 1.31c</h2>
+    <p>Tree from <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr> fig. 1.31 c. 
+    This is a context sensitive L-system.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(a)
+  - right(a)
+Ignore: + - F
+Axiom: F 1 F 1 F 1
+Rules:
+0 &lt; 0 &gt; 0 --&gt; 0
+0 &lt; 0 &gt; 1 --&gt; 1
+0 &lt; 1 &gt; 0 --&gt; 0
+0 &lt; 1 &gt; 1 --&gt; 1[+F1F1]
+1 &lt; 0 &gt; 0 --&gt; 0
+1 &lt; 0 &gt; 1 --&gt; 1F1
+1 &lt; 1 &gt; 0 --&gt; 0
+1 &lt; 1 &gt; 1 --&gt; 0
+    +     --&gt; -
+    -     --&gt; +</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="d" for="Tree1_31c_dist">Distance (d):</label></div>
+      <div class='rhs'><input id="Tree1_31c_dist" type="text" value="7"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="a" for="Tree1_31c_angle">Angle (a):</label></div>
+      <div class='rhs'><input id="Tree1_31c_angle" type="text" value="25.75"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="Tree1_31c_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="Tree1_31c_ngen" type="text" value="26" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.Tree1_31c = function(t)
+{
+  var d = parseFloat($("#Tree1_31c_dist").val());
+  var a = parseFloat($("#Tree1_31c_angle").val());
+  var ls = new jjs.Lsystem({
+              F: function() { t.forward(d); },
+              "+": function() { t.left(a); },
+              "-": function() { t.right(a); },
+              "[": function() { t.push(); },
+              "]": function() { t.pop(); }
+             },
+             [ {id:"F"},{id:"1"},{id:"F"},{id:"1"},{id:"F"},{id:"1"} ], 
+             [ 
+               { p: [ {id:"0"},{dir:"^",id:"0"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"0"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"1"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"0"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"0"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"1"},[{id:"+"},{id:"F"},{id:"1"},{id:"F"},{id:"1"}]];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"1"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"1"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"1"},{id:"F"},{id:"1"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"1"},{dir:".>",id:"0"} ],
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"1"},{dir:".>",id:"1"} ],
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"+"} ],
+                 s: function() { return [{id:"-"}];}
+                },
+               { p: [ {id:"-"} ],
+                 s: function() { return [{id:"+"}];}
+                }
+             ],
+            { F: "", "+": "", "-": "" }
+            );
+  t.left(90);
+  t.moveTo(0, -t.canvasHeight / 2 + 10);
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="Tree1_31d">
+    <h2>Trees 1.31d</h2>
+    <p>Tree from <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr> fig. 1.31 d. 
+    This is a context sensitive L-system.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(a)
+  - right(a)
+Ignore: + - F
+Axiom: F 0 F 1 F 1
+Rules:
+0 &lt; 0 &gt; 0 --&gt; 1
+0 &lt; 0 &gt; 1 --&gt; 0
+0 &lt; 1 &gt; 0 --&gt; 0
+0 &lt; 1 &gt; 1 --&gt; 1F1
+1 &lt; 0 &gt; 0 --&gt; 1
+1 &lt; 0 &gt; 1 --&gt; 1[+F1F1]
+1 &lt; 1 &gt; 0 --&gt; 1
+1 &lt; 1 &gt; 1 --&gt; 0
+    +     --&gt; -
+    -     --&gt; +</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="d" for="Tree1_31d_dist">Distance (d):</label></div>
+      <div class='rhs'><input id="Tree1_31d_dist" type="text" value="4"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="a" for="Tree1_31d_angle">Angle (a):</label></div>
+      <div class='rhs'><input id="Tree1_31d_angle" type="text" value="25.75"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="Tree1_31d_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="Tree1_31d_ngen" type="text" value="24" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.Tree1_31d = function(t)
+{
+  var d = parseFloat($("#Tree1_31d_dist").val());
+  var a = parseFloat($("#Tree1_31d_angle").val());
+  var ls = new jjs.Lsystem({
+              F: function() { t.forward(d); },
+              "+": function() { t.left(a); },
+              "-": function() { t.right(a); },
+              "[": function() { t.push(); },
+              "]": function() { t.pop(); }
+             },
+             [ {id:"F"},{id:"0"},{id:"F"},{id:"1"},{id:"F"},{id:"1"} ], 
+             [ 
+               { p: [ {id:"0"},{dir:"^",id:"0"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"1"}];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"0"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"0"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"0"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"1"},{id:"F"},{id:"1"}];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"1"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"1"}];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"1"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"1"},[{id:"+"},{id:"F"},{id:"1"},{id:"F"},{id:"1"}]];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"1"},{dir:".>",id:"0"} ],
+                 s: function() { return [{id:"1"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"1"},{dir:".>",id:"1"} ],
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"+"} ],
+                 s: function() { return [{id:"-"}];}
+                },
+               { p: [ {id:"-"} ],
+                 s: function() { return [{id:"+"}];}
+                }
+             ],
+            { F: "", "+": "", "-": "" }
+            );
+  t.left(90);
+  t.moveTo(0, -t.canvasHeight / 2 + 10);
+  return ls;
+};
+</script>
+<!--
+***********************
+-->
+  <div id="Tree1_31e">
+    <h2>Trees 1.31e</h2>
+    <p>Tree from <abbr title="The Algorithmic Beauty of Plants">ABOP</abbr> fig. 1.31 e. 
+    This is a context sensitive L-system.</p>
+    <pre>
+Symbols:
+  F forward(d)
+  + left(a)
+  - right(a)
+Ignore: + - F
+Axiom: F 1 F 1 F 1
+Rules:
+0 &lt; 0 &gt; 0 --&gt; 0
+0 &lt; 0 &gt; 1 --&gt; 1[-F1F1]
+0 &lt; 1 &gt; 0 --&gt; 1
+0 &lt; 1 &gt; 1 --&gt; 1
+1 &lt; 0 &gt; 0 --&gt; 0
+1 &lt; 0 &gt; 1 --&gt; 1F1
+1 &lt; 1 &gt; 0 --&gt; 1
+1 &lt; 1 &gt; 1 --&gt; 0
+    +     --&gt; -
+    -     --&gt; +</pre>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="d" for="Tree1_31e_dist">Distance (d):</label></div>
+      <div class='rhs'><input id="Tree1_31e_dist" type="text" value="6"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="a" for="Tree1_31e_angle">Angle (a):</label></div>
+      <div class='rhs'><input id="Tree1_31e_angle" type="text" value="22.5"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class='lhs'><label accesskey="g" for="Tree1_31e_ngen">Number of Generations:</label></div>
+      <div class='rhs'><input id="Tree1_31e_ngen" type="text" value="30" size="4" maxlength="4"></div>
+    </div>
+  </div>
+<script type="text/javascript">
+examples.Tree1_31e = function(t)
+{
+  var d = parseFloat($("#Tree1_31e_dist").val());
+  var a = parseFloat($("#Tree1_31e_angle").val());
+  var ls = new jjs.Lsystem({
+              F: function() { t.forward(d); },
+              "+": function() { t.left(a); },
+              "-": function() { t.right(a); },
+              "[": function() { t.push(); },
+              "]": function() { t.pop(); }
+             },
+             [ {id:"F"},{id:"1"},{id:"F"},{id:"1"},{id:"F"},{id:"1"} ], 
+             [ 
+               { p: [ {id:"0"},{dir:"^",id:"0"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"0"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"1"},[{id:"-"},{id:"F"},{id:"1"},{id:"F"},{id:"1"}]];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"0"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"1"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"0"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"1"}];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"1"},{dir:".>",id:"0"} ], 
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"0"},{dir:"^",id:"1"},{dir:".>",id:"1"} ], 
+                 s: function() { return [{id:"1"},{id:"F"},{id:"1"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"1"},{dir:".>",id:"0"} ],
+                 s: function() { return [{id:"1"}];}
+                },
+               { p: [ {id:"1"},{dir:"^",id:"1"},{dir:".>",id:"1"} ],
+                 s: function() { return [{id:"0"}];}
+                },
+               { p: [ {id:"+"} ],
+                 s: function() { return [{id:"-"}];}
+                },
+               { p: [ {id:"-"} ],
+                 s: function() { return [{id:"+"}];}
+                }
+             ],
+            { F: "", "+": "", "-": "" }
+            );
+  t.left(90);
+  t.moveTo(0, -t.canvasHeight / 2 + 10);
+  return ls;
+};
+</script>
+
+</div>
+<!--
+**
+** End models
+**
+-->
+        <div id="noprint">
+
+        <fieldset id="globalSettings"><legend>Drawing Control</legend>
+          <div class="ctrl-row">
+            <div class='lhs'><label accesskey="c" for="penColor">Pen color:</label></div>
+            <div class='rhs'><input id="penColor" type="text" value="black" size="10" maxlength="14"></div>
+          </div>
+          <div class="ctrl-row">
+            <div class='lhs'><label accesskey="w" for="penWidth">Pen width:</label></div>
+            <div class='rhs'><input id="penWidth" type="text" value="2"  size="2" maxlength="2"></div>
+          </div>
+          <div class="ctrl-row">
+            <div class='lhs'><label accesskey="k" for="backgroundColor">Background color:</label></div>
+            <div class='rhs'><input id="backgroundColor" type="text" value="white"  size="10" maxlength="14"></div>
+          </div>
+          <div class="ctrl-row">
+            <div class='lhs'><label for="modulesPerStep">Modules per step:</label></div>
+            <div class='rhs'><div class="ctrl">
+              <div id='modulesPerStep' class='ui-slider-1'>
+                <div class='ui-slider-handle'></div>
+              </div>
+            </div></div>
+          </div>
+          <div class="ctrl-row">
+            <div class='lhs'><label for="delay">Delay:</label></div>
+            <div class='rhs'><div class="ctrl">
+              <div id='delay' class='ui-slider-1'>
+                <div class='ui-slider-handle'></div>
+              </div>
+            </div></div>
+          </div>
+        </fieldset>
+        <div id="playerButtons" class="button-row">
+          <button accesskey="p" id="play-stop"><img src="res/i/play.gif" alt="Play"></button>
+          <button accesskey="b" title="Draw previous generation" id="prev">
+            <img src="res/i/prev.gif" alt="Draw previous generation"></button>
+          <button accesskey="f" title="Draw next generation" id="next">
+            <img src="res/i/next.gif" alt="Draw next generation"></button>
+        </div>
+        <div id="progressArea">
+          <div id="genProgress" class="progress"></div>
+          <div id="renderProgress" class="progress"></div>
+        </div>
+
+        </div>
+      </div> <!-- controls -->
+    </div> <!-- yui-gc -->
+  </div>
+  <div id="ft">
+    Copyright &copy; 2008, John Snyders
+     <p>This work is licensed under a 
+     <a rel="license" href="http://creativecommons.org/licenses/by/3.0/us/">Creative Commons Attribution 3.0 United States License</a>.
+     </p>
+  </div>
+  <div id="dialogs">
+    <div id="about">
+     <p>L-system.html - A web page for exploring L-systems.</p>
+     <p>Uses HTML, CSS, the new &lt;canvas&gt;
+     tag, JavaScript and jQuery.</p>
+     <p>Read the HardLikeSoftware <a href="http://hardlikesoftware.com/weblog/2008/01/23/l-systems-in-javascript-using-canvas/">article</a>.</p>
+     <p class="copy">
+     <a rel="license" href="http://creativecommons.org/licenses/by/3.0/us/">
+     <img alt="Creative Commons License" src="http://i.creativecommons.org/l/by/3.0/us/88x31.png"></a>
+     Copyright &copy; 2008, John Snyders<br>This work is licensed under a 
+     <a rel="license" href="http://creativecommons.org/licenses/by/3.0/us/">Creative Commons Attribution 3.0 United States License</a>.
+     </p>
+    </div>
+    <div id="info">
+    </div>
+  </div>
+</div>
+
+<script src="res/js/ls2-min.js" type="text/javascript"></script>
+
+
+</body>
+</html>
+

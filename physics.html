@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Newton.js: Constraints Example</title>
+
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type='text/javascript' src='newton.js'></script>
+
+<script type="text/javascript" src="lsys/compiler.js"></script>
+<script type="text/javascript" src="lsys/lsystem.js"></script>
+<script type="text/javascript" src="lsys/rule.js"></script>
+<script type="text/javascript" src="lsys/turtle.js"></script>
+<script type="text/javascript" src="lsys/driver.js"></script>
+<script type="text/javascript" src="lsys/driver_canvas.js"></script>
+<script type="text/javascript" src="lsys/driver_svgsource.js"></script>
+<script type="text/javascript" src="lsys/interpreter_2d.js"></script>
+<script type="text/javascript" src="lsys/parser.js"></script>
+
+<style>
+	body {
+		margin: 0;
+		padding: 0;
+	}
+</style>
+
+<script type="text/javascript">
+
+var sim;
+
+function driver_newton() {
+    this.features = {'drawLine':true, 'clear':false, 'translate':false};
+}
+
+driver_newton.prototype = new driver();
+
+driver_newton.prototype.clear = function() {
+}
+
+var points = [];
+var edges = [];
+
+function whichPoint(x,y) {
+	for (var i = 0; i < points.length; i++) {
+		var S = points[i];
+		if ((S[0] == x) && (S[1] == y))
+			return i;
+	}
+	return -1;
+}
+function addPoint(x, y) {
+	var existing = whichPoint(x, y);
+	if (existing!=-1)
+		return existing;
+
+	points.push([x,y]);
+	return points.length-1;	
+}
+function addEdge(x1, y1, x2, y2) {
+	var p1 = addPoint(x1, y1);
+	var p2 = addPoint(x2, y2);
+	edges.push([p1, p2]);
+}
+function rootEdge(p) {
+	//find edge which ends in p
+	for (var i = 0; i < edges.length; i++) {	
+		if (edges[i][1] == p) return i;
+	}
+	return -1;
+}
+
+var plantParticleMaterial = Newton.Material({
+  weight: 0,
+  restitution: 0.5,
+  friction: 0.2,
+  maxVelocity: 50
+});
+var plantMaterial = Newton.Material({
+  weight: 0,
+  restitution: 0,
+  friction: 0,
+  maxVelocity: 50
+});
+
+
+function build() {
+    var body = Newton.Body();
+	sim.add(body);
+
+	//var fixedLayer = sim.Layer();              // responds to no forces, no collisions
+	//fixedLayer.respondTo([]);
+	
+
+	var root = body.Particle(startx, starty+2);
+	root.pin();
+
+	var pointParticles = points.map(function(p) {
+		var p = body.Particle(p[0], p[1], 0, plantParticleMaterial)
+		//p.pin();
+		return p;
+	});
+	pointParticles[0].pin();
+	pointParticles[1].pin();
+
+	for (var i = 0; i < edges.length; i++) {
+		var e1 = edges[i][0];
+		var e2 = edges[i][1];
+
+		var segment = body.DistanceConstraint(pointParticles[e1], pointParticles[e2]);
+
+		if (Math.random() < 0.5) {
+			segment.strokeStyle = "rgba(50, 155, 50, 0.8)";
+		}
+		else {
+			segment.strokeStyle = "rgba(100, 210, 100, 0.85)";
+		}
+		segment.lineWidth = segment.distance / 4.0;
+
+
+		var r = rootEdge(e1);
+		if (r!=-1) {
+			var p = pointParticles[ edges[r][0] ];
+			var stiffness = 0.75;
+			body.AngleConstraint(pointParticles[e1], p, pointParticles[e2], stiffness);
+		}
+		else {
+			var dc = body.DistanceConstraint(root, pointParticles[e1]);
+			dc.lineWidth = 1;
+			dc.strokeStyle = "rgba(160, 255, 160, 0.05)";
+			body.AngleConstraint(pointParticles[e1], root, pointParticles[e2], stiffness);
+		}
+	}
+}
+
+driver_newton.prototype.drawLine = function(x1, y1, x2, y2) {
+	var ox = 0 ;
+	var oy = 0;
+
+	addEdge(scale*x1+ox, scale*y1+oy, scale*x2+ox, scale*y2+oy);
+}
+
+driver_newton.prototype.drawCircle = function(x, y, r) {
+}
+
+driver_newton.prototype.setColor = function(r, g, b) {
+}
+
+driver_newton.prototype.save = function() {
+}
+
+driver_newton.prototype.restore = function() {
+}
+
+driver_newton.prototype.start = function() {
+}
+
+driver_newton.prototype.finish = function() {
+}
+
+
+var canvas = null;
+var angle = null;
+var canvasDOMNode = null;
+var editorDOMNode = null;
+
+var compiled_lstr = '';
+var parsed_lsys = null;
+
+var startx = 0;
+var starty = 0;
+var scale = 2;
+
+
+function deg2rad(deg) {
+    return 2 * Math.PI / 360 * deg;
+}
+
+
+function parse(lsystem) {
+    var lsparser = new parser();
+    return lsparser.parseString(lsystem);
+}
+
+function compile(lsys) {
+    var lscompiler = new compiler();
+
+    //var lsys = lsparser.parseString(editorDOMNode.value);
+    lscompiler.addRules(lsys.rules);
+    lscompiler.setAxiom(lsys.axiom);
+    
+    // compile the l-system (returns a string)
+    return lscompiler.compile(lsys.iterations);
+}
+
+function interpret(lsys, lstr, px, py) {
+
+    // create a new interpreter instance and attach a driver
+    var lsinterpreter = new interpreter_2d(new driver_newton(canvasDOMNode), new turtle(startx/scale, starty));
+    lsinterpreter.drawStartPosition = undefined; //settings['drawStartPosition'];
+    lsinterpreter.angle = lsys.angle;
+    lsinterpreter.nodeLength = lsys.nodeLength;
+
+    // interpret the compiled string
+    lsinterpreter.interpret(lstr);
+}
+
+function redraw(lsystem) {
+    parsed_lsys = parse(lsystem);
+    compiled_lstr = compile(parsed_lsys);
+    interpret(parsed_lsys, compiled_lstr);
+}
+
+
+
+
+
+
+  /*$('#display').click(function(e) {
+    var offset = $(this).offset();
+    var x = e.pageX - offset.left;
+    var y = e.pageY - offset.top;
+    var particle = sim.findParticle(x, y, 20);
+
+    if (particle) particle.destroy();
+  });*/
+    
+	$('body').ready(function() {
+		var cw = document.documentElement.clientWidth;
+		var ch = document.documentElement.clientHeight;
+
+		startx = document.documentElement.clientWidth / 2.0;
+		starty = document.documentElement.clientHeight/2.0;
+
+		$('#display').attr('height', ch-5);
+		$('#display').attr('width', cw-5);
+
+		  //var prenderer = Newton.PixiRenderer(document.getElementById('wrap'), 800, 600);
+
+		/*
+		  var renderer = Newton.GLRenderer(document.getElementById('display'));
+				renderer.drawEdges = function(edges) {
+				    for (var edge, gl = this.gl, vertices = [], i = 0, ilen = edges.length; ilen > i; i++) edge = edges[i].getCoords(), 
+				    vertices.push(edge.x1, edge.y1, 0), vertices.push(edge.x2, edge.y2, 0);
+				    gl.useProgram(this.edgeShader), gl.bindBuffer(gl.ARRAY_BUFFER, this.edgePositionBuffer), 
+				    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW), gl.vertexAttribPointer(this.edgeShader.attributes.position, 3, gl.FLOAT, !1, 0, 0), 
+				    gl.enableVertexAttribArray(this.edgeShader.attributes.position), gl.lineWidth(5.0), 
+				    gl.drawArrays(gl.LINES, 0, vertices.length / 3);
+				};
+				renderer.drawConstraints = function(constraints) {
+				    for (var constraint, coords, gl = this.gl, vertices = [], i = 0, ilen = constraints.length; ilen > i; i++) constraint = constraints[i], 
+				    "linear" === constraint.category && (coords = constraint.getCoords(), vertices.push(coords.x1, coords.y1, 0), 
+				    vertices.push(coords.x2, coords.y2, 0));
+				    gl.useProgram(this.constraintShader), gl.bindBuffer(gl.ARRAY_BUFFER, this.edgePositionBuffer), 
+				    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW), gl.vertexAttribPointer(this.constraintShader.attributes.position, 3, gl.FLOAT, !1, 0, 0), 
+				    gl.enableVertexAttribArray(this.constraintShader.attributes.position), gl.lineWidth(2), 
+				    gl.drawArrays(gl.LINES, 0, vertices.length / 3);
+				};
+		*/
+
+		  var renderer = Newton.Renderer(document.getElementById('display'));
+			
+			renderer.drawEdges = function(ctx, edges) {
+				ctx.save(), ctx.strokeStyle = "rgba(255, 255, 255, 0.4)", ctx.lineWidth = 15;
+				for (var edge, i = edges.length; i--; ) edge = edges[i].getCoords(), ctx.beginPath(), 
+				ctx.moveTo(edge.x1, edge.y1), ctx.lineTo(edge.x2, edge.y2), ctx.closePath(), ctx.stroke();
+				return ctx.restore(), edges.length;
+			};
+		    renderer.clear = function(ctx) {
+		        ctx.save(), ctx.fillStyle = "#ddf", ctx.fillRect(0, 0, this.width, this.height), 
+		        ctx.restore();
+		    };
+		    renderer.drawConstraints = function(ctx, constraints) {
+			        var coords, constraint;
+			        ctx.save();
+					var defaultStrokeStyle = "rgba(100, 255, 100, 0.8)";
+					var defaultLineWidth = 15;
+			        for (var i = 0, ilen = constraints.length; ilen > i; i++) {					
+						constraint = constraints[i];
+
+						if (constraint.strokeStyle) ctx.strokeStyle = constraint.strokeStyle; 
+						else						ctx.strokeStyle = defaultStrokeStyle;
+		
+						if (constraint.lineWidth) ctx.lineWidth = constraint.lineWidth; 
+						else						ctx.lineWidth = defaultLineWidth;
+
+
+				        "linear" === constraint.category ? (coords = constraint.getCoords(),
+							ctx.beginPath(),
+							ctx.moveTo(coords.x1, coords.y1),
+							ctx.lineTo(coords.x2, coords.y2),
+							ctx.closePath(),
+							ctx.stroke())
+						 : "rigid" === constraint.category && (coords = constraint.centerMass,
+								ctx.beginPath(),
+								ctx.moveTo(coords.x - 3, coords.y - 3),
+								ctx.lineTo(coords.x + 3, coords.y + 3),
+								ctx.closePath(),
+								ctx.stroke());
+					}
+		        ctx.restore();
+		    };
+		    renderer.drawParticles = function(ctx, particles) {
+		        var particle, pos, last, mass;
+		        ctx.save(), ctx.lineCap = "round", ctx.lineJoin = "round";
+		        for (var j = 0, jlen = particles.length; jlen > j; j++) particle = particles[j], 
+		        pos = particle.position, last = particle.lastValidPosition, mass = particle.getMass(), 
+		        ctx.beginPath(), particle.pinned ? (ctx.strokeStyle = "rgba(255, 255, 255, 1)", 
+		        ctx.lineWidth = 1, ctx.moveTo(last.x - 3, last.y - 3), ctx.lineTo(last.x + 3, last.y + 3), 
+		        ctx.moveTo(last.x + 3, last.y - 3), ctx.lineTo(last.x - 3, last.y + 3)) : (ctx.lineWidth = ~~(mass / 3) + 2, 
+		        ctx.strokeStyle = particle.colliding ? "rgba(255, 255, 100, 1)" : "rgba(255, 28, 108, 0.5)", 
+		        ctx.moveTo(last.x, last.y), ctx.lineTo(pos.x + 1, pos.y)), ctx.stroke();
+		        ctx.restore();
+		    };
+		  var fps = 35;
+
+		  sim = Newton.Simulator(simulate, renderer.callback, fps, 10);
+
+		var particleMaterial = Newton.Material();
+
+
+		  var gravity = Newton.LinearGravity(0, 0.00001, 0);
+		  //var container = Newton.BoxConstraint(0, 0, 1280, 450);
+    		var wind = Newton.LinearGravity(Math.PI * 0.5, 0.00003, 0);
+		
+		    var particles = Newton.Body(particleMaterial);
+
+		redraw($('#lseditor').text());
+		build();
+
+			var absTime = 0;
+			function simulate(time) {
+				wind.strength = ( Math.sin(absTime/2.0)) * 1.55115;
+				absTime += time;
+			}
+
+		  sim
+			.add(gravity)
+			.add(wind)
+			.add(particles)
+		//    .add(container)
+			.start();
+
+		 function addParticles(x, y, n) {
+			for (var i = 0; i < n; i++) {
+			  //if (particles.particles.length) return;
+			  var newParticle = createRandom(x, y, 50);
+			  particles.addParticle(newParticle);
+			}
+		  }
+
+		  function createRandom(x, y, spread) {
+			var size = Math.random() * 4 + 1;
+			var x = Math.random() * spread * 2 + x - spread;
+			var y = Math.random() * spread * 2 + y - spread;
+			return Newton.Particle(x, y, size, particleMaterial);
+		  }
+			
+		  //addParticles(startx, starty-200, 50);
+	});
+
+</script>
+</head>
+
+
+<body>
+<canvas id="display" width="400" height="400"></canvas>
+
+<textarea style="display:none" cols="40" rows="10" id="lseditor">
+# Welcome to LSys/JS
+# NOTE: LSys/JS has only been tested with Firefox 1.5+ 
+#
+# - Use the mouse to reposition the current L-System
+# - Hit "Alt-R" or click "Redraw" to redraw
+# - Use the "Width" and "Height" buttons to resize the drawing canvas
+# - Load a ready-made L-System from the presets and have fun.
+#
+# Click "Help" for more information.
+#
+# The default L-System models a small weed made by Philipp Stucki.
+
+iterations=3
+angle=8.5
+axiom=+A-B-C-D+E
+
+A:=FFFF[--AE]F[+++AE]FFF
+B:=FFFF
+C:=F[+++CE]F[-AE]F
+D:=FFF
+E:=[---F][--FF][-FFF][+++F][++FF][+FFF]FFF
+</textarea>
+
+
+</body>

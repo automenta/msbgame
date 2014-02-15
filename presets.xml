@@ -1,0 +1,66 @@
+<presets>
+<group name="Classics">
+<lsystem name="Koch Snowflake">
+#koch snowflake iterations = 3 angle = 60 axiom = F--F--F length=6 F:=F+F--F+F
+</lsystem>
+<lsystem name="Sierpinski Triangle">
+#sierpinski triangle iterations = 7 angle = 60 axiom=A length=4 A:=B-A-B B:=A+B+A
+</lsystem>
+</group>
+<group name="Misc.">
+<lsystem name="test1">
+#test1 iterations = 2 angle = 45 axiom = ---FFF length=20 F := AA-[--F][-F+F+F]+[++fBB---F-F]
+</lsystem>
+<lsystem name="Spiral 1">
+#spiral 1 (http://to-campos.planetaclix.pt/fractal/plantae.htm) iterations = 3 angle = 15 axiom=AAAA A:=B+B+B+B+B+B+ B:=[F+F+F+F[---B-C]+++++F++++++++F-F-F-F] C:=[F+F+F+F[---C]+++++F++++++++F-F-F-F]
+</lsystem>
+</group>
+<group name="Plant Like">
+<lsystem name="Bush 1">
+#bush 1 (abop p. 25) iterations=4 angle =22.5 axiom=F length=7 F:=FF-[-F+F+F]+[+F-F-F]
+</lsystem>
+<lsystem name="Weed 1">
+#weed 1 (abop p. 25) iterations=4 angle=20 axiom=X X:=F[+X]F[-X]+X F:=FF
+</lsystem>
+<lsystem name="Weed 2">
+#weed 2 (abop p. 25) iterations=4 angle=20 axiom=X X:=F-[[X]+X]+F[+FX]-X F:=FF
+</lsystem>
+</group>
+<group name="ABOP">
+<lsystem name="Quadratic Koch Island">
+# quadratic koch island iterations = 3 angle = 90 length=4 axiom = F-F-F-F F: = F-F+F+FF-F-F+F
+</lsystem>
+<lsystem name="Dragon Curve">
+# dragon curve length=8 iterations=10 angle =90 axiom=A A:=A+B+ B:=-A-B
+</lsystem>
+<lsystem name="Hex. Gosper Curve">
+#hexagonal gosper curve iterations=4 angle=60 axiom=A length=8 A:=A+B++B-A--AA-B+ B:=-A+BB++B+A--A-B
+</lsystem>
+<lsystem name="Islands and Lakes">
+#islands and lakes (abop p. 9) iterations=2 angle=90 length=7 axiom=F+F+F+F F:=F+f-FF+F+FF+Ff+FF-f+FF-F-FF-Ff-FFF f:=ffffff
+</lsystem>
+<lsystem name="Quadratic Koch Curve 1">
+#quadratic koch 1 (abop p. 10) iterations=4 angle=90 axiom=F-F-F-F F:=F-FF--F-F
+</lsystem>
+</group>
+<group name="Philipp's Models">
+<lsystem name="Long Plant">
+#long plant, Philipp Stucki iterations=3 angle=20 axiom=X X:=F[+X]F[-FX]+X[---X[++F+F]+F F:=F
+</lsystem>
+<lsystem name="Algae 1">
+#algae 1 , Philipp Stucki iterations=3 angle=170 length=10 axiom=F-F-F-F F:=F-FF--F-F
+</lsystem>
+<lsystem name="Tree 1">
+#tree 1, Philipp Stucki iterations=4 angle=27 axiom=AX A:=AB X:=F[-Z]F[+X]F[-Z]+X Z:=-D[+X]DD[-X]+X F:=FF
+</lsystem>
+<lsystem name="Weed 1">
+#weed 1, Philipp Stucki iterations=4 angle=8.5 axiom=+A-B-C-D+E A:=FFFF[--AE]F[+++AE]FFF B:=FFFF C:=F[+++CE]F[-AE]F D:=FFF E:=[---F][--FF][-FFF][+++F][++FF][+FFF]FFF
+</lsystem>
+<lsystem name="Weed 2">
+#weed 2, Philipp Stucki iterations=6 angle=15 axiom=AFFFFB length=15 A:=AFFF[--FFFB][++FFFB] B:=[+++++F][++++F][+++F][++F][+F][F][-F][--F][---F][----F][-----F]
+</lsystem>
+<lsystem name="Long Weed">
+#long weed, Philipp Stucki iterations=4 angle=8.5 axiom=+ZA-B-C-D length=6 Z:=F-FFFY+ZZX Y:=[++FFC] X:=[---FFFC] A:=FFFF[--AEEE]F[+++AEEE]FFF B:=FFFF C:=F[+++CE]F[-AE]F D:=FFF E:=[---F][--FF][-FFF][+++F][++FF][+FFF]FFF
+</lsystem>
+</group>
+</presets>
